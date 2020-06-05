@@ -28,8 +28,8 @@ backup_procedure() {
   # Set varibles from config file.
   passwd=$(sed '1q;d' $config)
   dest=$(sed '2q;d' $config)
-  bkupdir="/home/josh/test"
-  #read -p "Enter backup directory." bkupdir
+  #bkupdir="/home/josh/test"
+  read -p "Enter the directory you want to backup. " bkupdir
 
   # Formating Borg Backup name.
   day=$(date +%A)
