@@ -3,4 +3,4 @@ Backup script using Borg and pwgen
 
 Requires Borg backup and pwgen to work.
 
-This was build to simplify the backup process I use.
+This was built to simplify the backup process I use.
