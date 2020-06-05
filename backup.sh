@@ -28,7 +28,7 @@ backup_procedure() {
   # Set varibles from config file.
   passwd=$(sed '1q;d' $config)
   dest=$(sed '2q;d' $config)
-  #bkupdir="/home/josh/test"
+  #bkupdir="/home/josh/test" #Static Test Directory
   read -p "Enter the directory you want to backup. " bkupdir
 
   # Formating Borg Backup name.
