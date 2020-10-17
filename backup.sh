@@ -12,10 +12,10 @@
 # Init Procedure
 init_repo () {
   # Set config file
-  config="./config"
+  local config="./config"
 
   # Set varibles from config file.
-  passwd=$(sed '1q;d' $config)
+  local passwd=$(sed '1q;d' $config)
   export BORG_PASSPHRASE=$passwd
   borg init --encryption=repokey $ndest
 }
@@ -23,18 +23,19 @@ init_repo () {
 # Backup Procedure
 backup_procedure() {
   # Set config file
-  config="./config"
+  local config="./config"
 
   # Set varibles from config file.
-  passwd=$(sed '1q;d' $config)
-  dest=$(sed '2q;d' $config)
+  local passwd=$(sed '1q;d' $config)
+  local dest=$(sed '2q;d' $config)
   #bkupdir="/home/josh/test" #Static Test Directory
+  local bkupdir
   read -p "Enter the directory you want to backup. " bkupdir
 
   # Formating Borg Backup name.
-  day=$(date +%A)
-  hostname=$(hostname -s)
-  borg_bckupname="$hostname-$(date +%Y%m%d)-$(date +%H:%M:%S)"
+  local day=$(date +%A)
+  local hostname=$(hostname -s)
+  local borg_bckupname="$hostname-$(date +%Y%m%d)-$(date +%H:%M:%S)"
 
   # Start backup precedure using variables
   echo "Backing up $bkupdir to $dest/$borg_bckupname"
