@@ -1,5 +1,11 @@
 # BorgGuard Backup Script
 
+ _____                 _____            _             
+| __  | ___  ___  ___ | __  | ___  ___ | |_  _ _  ___ 
+| __ -|| . ||  _|| . || __ -|| .'||  _|| '_|| | || . |
+|_____||___||_|  |_  ||_____||__,||___||_,_||___||  _|
+                 |___|                           |_|  
+
 ## Created by: KeepItTechie
 - YouTube Channel: [KeepItTechie](https://youtube.com/@KeepItTechie)
 - Blog: [KeepItTechie Docs](https://docs.keepittechie.com/)

@@ -27,6 +27,12 @@
 # Full details and instructions can be found on my GitHub repository:
 # https://github.com/keepittechie/borgguard
 
+ _____                 _____            _             
+| __  | ___  ___  ___ | __  | ___  ___ | |_  _ _  ___ 
+| __ -|| . ||  _|| . || __ -|| .'||  _|| '_|| | || . |
+|_____||___||_|  |_  ||_____||__,||___||_,_||___||  _|
+                 |___|                           |_|  
+
 # Dependencies check
 check_dependencies() {
     for dep in borg pwgen python3; do
