@@ -27,6 +27,29 @@
 # Full details and instructions can be found on my GitHub repository:
 # https://github.com/keepittechie/borgguard
 
+ _____                 _____            _             
+| __  | ___  ___  ___ | __  | ___  ___ | |_  _ _  ___ 
+| __ -|| . ||  _|| . || __ -|| .'||  _|| '_|| | || . |
+|_____||___||_|  |_  ||_____||__,||___||_,_||___||  _|
+                 |___|                           |_|  
+
+# Dependencies check
+check_dependencies() {
+    for dep in borg pwgen python3; do
+        if ! command -v $dep &> /dev/null; then
+            echo "Error: $dep is not installed. Please install it and try again."
+            exit 1
+        fi
+    done
+}
+
+# Logging function
+log() {
+    local msg="$1"
+    echo "$(date +'%Y-%m-%d %H:%M:%S') - $msg"
+}
+
+# Store password securely
 store_password() {
     local passwd="$1"
     local passwd_location="$HOME/passwd_bytes.borg"
@@ -44,6 +67,7 @@ with open('$passwd_location', 'bw') as f:
 ENDOFpy
 }
 
+# Read password with asterisks
 passd_with_asterisk() {
     stty -echo
     local CHAR PASSWORD
@@ -65,6 +89,7 @@ passd_with_asterisk() {
     eval "$1='$PASSWORD'"
 }
 
+# Check password length and special character
 check_passwd_len_char() {
     local password="$1"
     local special_char_check=$(printf %s "$password" | tr -d "[:alnum:]")
@@ -79,12 +104,14 @@ check_passwd_len_char() {
     fi
 }
 
+# Automatically set password
 auto_setting_passwd() {
     local npasswd=$(pwgen -ysBv 15 1)
     echo "$npasswd" > ./config.borg
     export BORG_PASSPHRASE="$npasswd"
 }
 
+# Manually set password
 man_setting_passwd() {
     local passwd password
 
@@ -111,6 +138,7 @@ man_setting_passwd() {
     exit 1
 }
 
+# Check password against stored hash
 check_passwd() {
     local passwd="$1"
     local passwd_location="$HOME/passwd_bytes.borg"
@@ -130,6 +158,7 @@ print(encoded_check_password == passwd_stored)
 ENDOFpy
 }
 
+# Get password information
 getting_passwd_info() {
     read -p "To create a backup a password will be created to secure the backup\nEnter 'a' to automatically create a password or 'm' to manually create a password (default: manual): " passwd_option
     passwd_option=${passwd_option:-m}
@@ -141,6 +170,7 @@ getting_passwd_info() {
     esac
 }
 
+# Detect password option
 detect_passwd_option() {
     while true; do
         read -p "Enter 'a' for automatic password or 'm' for manual password: " passwd_option
@@ -167,10 +197,12 @@ detect_passwd_option() {
     done
 }
 
+# Initialize repository
 init_repo() {
     borg init --encryption=repokey "$1"
 }
 
+# Backup procedure
 backup_procedure() {
     detect_passwd_option passwd dest
     read -p "Enter the directory you want to backup: " bkupdir
@@ -179,14 +211,16 @@ backup_procedure() {
     local host_name=$(hostname -s)
     local borg_bckupname="$host_name-$(date +%Y%m%d)-$(date +%H:%M:%S)"
 
-    echo -e "\nInitializing Backup $borg_bckupname\nBacking up $bkupdir to $dest on $backup_day"
+    log "Initializing Backup $borg_bckupname. Backing up $bkupdir to $dest on $backup_day."
     export BORG_PASSPHRASE="$passwd"
     borg create -v --stats "$dest::$borg_bckupname" "$bkupdir"
 
-    echo -e "\nBackup Completed on $backup_day"
+    log "Backup Completed on $backup_day."
 }
 
+# Main function
 main() {
+    check_dependencies
     while true; do
         read -p "Is this a new backup repository? (y/n): " newrepo
         case $newrepo in
