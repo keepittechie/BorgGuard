@@ -33,6 +33,18 @@
 |_____||___||_|  |_  ||_____||__,||___||_,_||___||  _|
                  |___|                           |_|  
 
+
+CONFIG_FILE="borgguard.conf"
+
+# Load configuration file
+load_config() {
+    if [ ! -f "$CONFIG_FILE" ]; then
+        echo "Error: Configuration file $CONFIG_FILE not found!"
+        exit 1
+    fi
+    source "$CONFIG_FILE"
+}
+
 # Dependencies check
 check_dependencies() {
     for dep in borg pwgen python3; do
@@ -46,7 +58,7 @@ check_dependencies() {
 # Logging function
 log() {
     local msg="$1"
-    echo "$(date +'%Y-%m-%d %H:%M:%S') - $msg"
+    echo "$(date +'%Y-%m-%d %H:%M:%S') - $msg" | tee -a /var/log/borgguard.log
 }
 
 # Store password securely
@@ -179,8 +191,7 @@ detect_passwd_option() {
                         echo -n "Verify your password: "
                         passd_with_asterisk password
                         if [ "$(check_passwd "$password")" == "True" ]; then
-                            local dest=$(sed '2q;d' ./config.borg)
-                            eval "$2='$dest'"
+                            eval "$2='$REPOSITORY_PATH'"
                             eval "$1='$password'"
                             return 0
                         else
@@ -188,8 +199,7 @@ detect_passwd_option() {
                         fi
                     done ;;
             [aA]*) local password=$(sed '1q;d' ./config.borg)
-                   local dest=$(sed '2q;d' ./config.borg)
-                   eval "$2='$dest'"
+                   eval "$2='$REPOSITORY_PATH'"
                    eval "$1='$password'"
                    return 0 ;;
             *) echo -e "\033[5;31;40m\nInvalid option\033[0m" ;;
@@ -199,13 +209,14 @@ detect_passwd_option() {
 
 # Initialize repository
 init_repo() {
-    borg init --encryption=repokey "$1"
+    borg init --encryption="$ENCRYPTION_TYPE" "$1"
 }
 
-# Backup procedure
+# Backup procedure with rotation
 backup_procedure() {
     detect_passwd_option passwd dest
-    read -p "Enter the directory you want to backup: " bkupdir
+    read -p "Enter the directory you want to backup [default: $BACKUP_DIRECTORY]: " bkupdir
+    bkupdir=${bkupdir:-$BACKUP_DIRECTORY}
 
     local backup_day=$(date '+%A the %d.%b.%Y')
     local host_name=$(hostname -s)
@@ -214,17 +225,22 @@ backup_procedure() {
     log "Initializing Backup $borg_bckupname. Backing up $bkupdir to $dest on $backup_day."
     export BORG_PASSPHRASE="$passwd"
     borg create -v --stats "$dest::$borg_bckupname" "$bkupdir"
+    
+    # Implement backup rotation: keep last 7 daily, 4 weekly, and 6 monthly archives
+    borg prune -v --list "$dest" --keep-daily="$KEEP_DAILY" --keep-weekly="$KEEP_WEEKLY" --keep-monthly="$KEEP_MONTHLY"
 
     log "Backup Completed on $backup_day."
 }
 
 # Main function
 main() {
+    load_config
     check_dependencies
     while true; do
         read -p "Is this a new backup repository? (y/n): " newrepo
         case $newrepo in
-            [yY]*) read -p "Enter path to new repository: " ndest
+            [yY]*) read -p "Enter path to new repository [default: $REPOSITORY_PATH]: " ndest
+                   ndest=${ndest:-$REPOSITORY_PATH}
                    echo "$ndest" > ./config.borg
                    getting_passwd_info
                    init_repo "$ndest"
